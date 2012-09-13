@@ -1,3 +1,4 @@
+import Data.List
 import Data.List.Split
 import Data.String.Utils -- from MissingH
 import Data.Maybe
@@ -25,6 +26,20 @@ trackingBranches branches =
       remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, not $ (LocalBranch n) `elem` localNames]
   in
    mappend localNames remoteOnlyNames
+   
+-- filter branches to only those whose name contains a string
+matchBranches :: String -> [Branch] -> [Branch]
+matchBranches needle [] = []
+matchBranches needle ((LocalBranch name):branches) = 
+  if isInfixOf needle name then
+    (LocalBranch name) : (matchBranches needle branches)
+  else
+    matchBranches needle branches
+matchBranches needle ((RemoteBranch name):branches) = 
+  if isInfixOf needle name then
+    (RemoteBranch name) : matchBranches needle branches
+  else
+    matchBranches needle branches
   
 getWebBranches = do
   allBranches <- getAllBranches "/home/wilfred/work/web/.git/info/refs"
