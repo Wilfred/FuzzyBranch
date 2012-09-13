@@ -1,16 +1,17 @@
 import Data.List.Split
 import Data.String.Utils -- from MissingH
+import Data.Maybe
 
 data Branch = LocalBranch String | RemoteBranch String deriving Show
 
 main = putStrLn "Hello, World!"
 
-getAllBranches :: String -> IO [Maybe Branch]
+getAllBranches :: String -> IO [Branch]
 getAllBranches filePath = do
   fileContents <- readFile filePath
   let fileLines = endBy "\n" fileContents
   let branchNames = map (dropWhile (/= '\t')) fileLines
-  let branches = map parseBranchName branchNames
+  let branches = mapMaybe parseBranchName branchNames
   return branches
   
 getWebBranches = getAllBranches "/home/wilfred/work/web/.git/info/refs"
