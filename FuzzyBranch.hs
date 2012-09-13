@@ -1,3 +1,4 @@
+import System.Directory(getCurrentDirectory)
 import Data.List
 import Data.List.Split
 import Data.String.Utils -- from MissingH
@@ -7,7 +8,15 @@ import Data.Monoid
 
 data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 
-main = putStrLn "Hello, World!"
+-- fixme: this breaks on subdirectories of the git repo
+main = do
+  currentDirectory <- getCurrentDirectory
+  let gitRefsPath = currentDirectory ++ "/.git/info/refs"
+  putStrLn $ "Looking at path: " ++ gitRefsPath
+  allBranches <- getAllBranches $ gitRefsPath
+  let branches = trackingBranches allBranches
+  putStrLn $ show branches
+
 
 getAllBranches :: String -> IO [Branch]
 getAllBranches filePath = do
