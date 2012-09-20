@@ -22,7 +22,7 @@ main = do
   putStrLn $ show $ matchBranches userBranchString branches
 
 
-getAllBranches :: String -> IO [Branch]
+getAllBranches :: FilePath -> IO [Branch]
 getAllBranches filePath = do
   fileContents <- readFile filePath
   let fileLines = endBy "\n" fileContents
