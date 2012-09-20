@@ -1,10 +1,11 @@
 import System.Directory(getCurrentDirectory)
 import System.Environment(getArgs)
 import Control.Monad(liftM)
-import Data.List.Split
-import Data.String.Utils -- from MissingH
-import Data.Maybe
-import Data.Monoid
+import Data.List(isInfixOf)
+import Data.List.Split(splitOn,endBy)
+import Data.String.Utils(join) -- from MissingH
+import Data.Maybe(mapMaybe)
+import Data.Monoid(mappend)
 
 
 data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
