@@ -62,13 +62,9 @@ getWebBranches = do
 parseBranchName :: String -> Maybe Branch
 parseBranchName branchName = 
   if branchLocation == "heads" then 
-    Just $ LocalBranch branchNamePart
+    Just $ LocalBranch $ join "/" $ drop 2 branchParts
   else if branchLocation == "remotes" then
-         Just $ RemoteBranch branchNamePart
+         Just $ RemoteBranch $ join "/" $ drop 3 branchParts
        else Nothing
   where branchParts = (splitOn "/") branchName
         branchLocation = branchParts !! 1
-        branchNamePart = join "/" (drop 2 branchParts)
-        
-        
-  
