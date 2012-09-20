@@ -1,5 +1,6 @@
 import System.Directory(getCurrentDirectory)
-import Data.List
+import System.Environment(getArgs)
+import Control.Monad(liftM)
 import Data.List.Split
 import Data.String.Utils -- from MissingH
 import Data.Maybe
@@ -16,6 +17,8 @@ main = do
   allBranches <- getAllBranches $ gitRefsPath
   let branches = trackingBranches allBranches
   putStrLn $ show branches
+  userBranchString <- liftM (!! 0) getArgs
+  putStrLn $ show $ matchBranches userBranchString branches
 
 
 getAllBranches :: String -> IO [Branch]
