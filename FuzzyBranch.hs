@@ -15,20 +15,21 @@ data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 -- fixme: this breaks on subdirectories of the git repo
 main = do
   args <- getArgs
-  if length args == 1 then do
-    repoPath <- getCurrentDirectory >>= gitDirectory
-    case repoPath of
-      Nothing -> do
-        putStrLn "No git repo here or in any parent directory."
-        exitFailure
-      Just path -> do
-        allBranches <- getAllBranches $ path ++ "/.git/info/refs"
-        let branches = trackingBranches allBranches
-        let userBranchString = args !! 0
-        putStrLn $ show $ matchBranches userBranchString branches 
-    else do
-    putStrLn "Usage: fuzzy <substring of branch name>"
-    exitFailure
+  case args of
+    [branchNameSubstring] -> do
+      repoPath <- getCurrentDirectory >>= gitDirectory
+      case repoPath of
+        Nothing -> do
+          putStrLn "No git repo here or in any parent directory."
+          exitFailure
+        Just path -> do
+          allBranches <- getAllBranches $ path ++ "/.git/info/refs"
+          let branches = trackingBranches allBranches
+          let userBranchString = args !! 0
+          putStrLn $ show $ matchBranches branchNameSubstring branches 
+    otherwise -> do
+      putStrLn "Usage: fuzzy <substring of branch name>"
+      exitFailure
   
 
 getAllBranches :: FilePath -> IO [Branch]
