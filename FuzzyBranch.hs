@@ -12,7 +12,6 @@ import Data.Monoid(mappend)
 
 data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 
--- fixme: this breaks on subdirectories of the git repo
 main = do
   args <- getArgs
   case args of
