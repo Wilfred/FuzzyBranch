@@ -1,5 +1,6 @@
 import System.Directory(getCurrentDirectory, doesDirectoryExist) -- from directory
 import System.Environment(getArgs)
+import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import Control.Monad(liftM)
 import Data.List(isInfixOf)
@@ -13,15 +14,22 @@ data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 
 -- fixme: this breaks on subdirectories of the git repo
 main = do
-  currentDirectory <- getCurrentDirectory
-  let gitRefsPath = currentDirectory ++ "/.git/info/refs"
-  putStrLn $ "Looking at path: " ++ gitRefsPath
-  allBranches <- getAllBranches $ gitRefsPath
-  let branches = trackingBranches allBranches
-  putStrLn $ show branches
-  userBranchString <- liftM (!! 0) getArgs
-  putStrLn $ show $ matchBranches userBranchString branches
-
+  args <- getArgs
+  if length args == 1 then do
+    repoPath <- getCurrentDirectory >>= gitDirectory
+    case repoPath of
+      Nothing -> do
+        putStrLn "No git repo here or in any parent directory."
+        exitFailure
+      Just path -> do
+        allBranches <- getAllBranches $ path ++ "/.git/info/refs"
+        let branches = trackingBranches allBranches
+        let userBranchString = args !! 0
+        putStrLn $ show $ matchBranches userBranchString branches 
+    else do
+    putStrLn "Usage: fuzzy <substring of branch name>"
+    exitFailure
+  
 
 getAllBranches :: FilePath -> IO [Branch]
 getAllBranches filePath = do
