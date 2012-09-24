@@ -1,8 +1,8 @@
-import System.Directory(getCurrentDirectory)
+import System.Directory(getCurrentDirectory) -- from directory
 import System.Environment(getArgs)
 import Control.Monad(liftM)
 import Data.List(isInfixOf)
-import Data.List.Split(splitOn,endBy)
+import Data.List.Split(splitOn,endBy) -- from split
 import Data.String.Utils(join) -- from MissingH
 import Data.Maybe(mapMaybe)
 import Data.Monoid(mappend)

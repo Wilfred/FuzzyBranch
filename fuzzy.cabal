@@ -1,0 +1,11 @@
+Name:                fuzzybranch
+Version:             0.1
+Description:         Fuzzy branch switching for Git
+License:             GPL
+Author:              Wilfred Hughes
+Maintainer:          me@wilfred.me.uk
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+Executable fuzzybranch
+  Main-is:           FuzzyBranch.hs
+  Build-Depends:     base, MissingH, split, directory
