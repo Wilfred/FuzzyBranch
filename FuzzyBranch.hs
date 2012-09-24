@@ -1,5 +1,6 @@
-import System.Directory(getCurrentDirectory) -- from directory
+import System.Directory(getCurrentDirectory, doesDirectoryExist) -- from directory
 import System.Environment(getArgs)
+import System.FilePath(takeDirectory)
 import Control.Monad(liftM)
 import Data.List(isInfixOf)
 import Data.List.Split(splitOn,endBy) -- from split
@@ -29,6 +30,20 @@ getAllBranches filePath = do
   let branchNames = map (dropWhile (/= '\t')) fileLines
   let branches = mapMaybe parseBranchName branchNames
   return branches
+  
+-- FIXME: assumes / is never a git repo
+gitDirectory :: FilePath -> IO (Maybe FilePath)
+gitDirectory "/" = return Nothing
+gitDirectory path = do
+  hasDotGit <- isGitDirectory path
+  if hasDotGit 
+    then 
+    return $ Just path 
+    else 
+    gitDirectory $ takeDirectory path
+
+isGitDirectory :: FilePath -> IO Bool
+isGitDirectory path = doesDirectoryExist $ path ++ "/.git"
 
 -- a list of local branches and only the remote branches that don't
 -- have corresponding local branches
