@@ -33,8 +33,9 @@ main = do
               exitFailure
             [branch] ->
               checkoutBranch branch
-            (x:xs) -> do
+            (b:bs) -> do
               putStrLn $ "Found multiple branches that match '" ++ branchNameSubstring ++ "'"
+              putStrLn $ join ", " $ map show (b:bs)
               exitFailure
               
     otherwise -> do
