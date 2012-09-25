@@ -8,4 +8,4 @@ Build-Type:          Simple
 Cabal-Version:       >=1.2
 Executable fuzzybranch
   Main-is:           FuzzyBranch.hs
-  Build-Depends:     base, MissingH, split, directory, filepath
+  Build-Depends:     base, MissingH, split, directory, filepath, process

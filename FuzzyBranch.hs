@@ -2,6 +2,7 @@ import System.Directory(getCurrentDirectory, doesDirectoryExist) -- from directo
 import System.Environment(getArgs)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
+import System.Process(readProcess)
 import Control.Monad(liftM)
 import Data.List(isInfixOf)
 import Data.List.Split(splitOn,endBy) -- from split
@@ -25,10 +26,25 @@ main = do
           allBranches <- getAllBranches $ path ++ "/.git/info/refs"
           let branches = trackingBranches allBranches
           let userBranchString = args !! 0
-          putStrLn $ show $ matchBranches branchNameSubstring branches 
+          
+          case matchBranches branchNameSubstring branches of
+            [] -> do
+              putStrLn $ "Couldn't find any branches that match '" ++ branchNameSubstring ++ "'"
+              exitFailure
+            [branch] ->
+              checkoutBranch branch
+            (x:xs) -> do
+              putStrLn $ "Found multiple branches that match '" ++ branchNameSubstring ++ "'"
+              exitFailure
+              
     otherwise -> do
       putStrLn "Usage: fuzzy <substring of branch name>"
       exitFailure
+      
+checkoutBranch :: Branch -> IO ()
+checkoutBranch (LocalBranch name) = do
+  output <- readProcess "git" ["checkout", name] []
+  putStrLn output
   
 
 getAllBranches :: FilePath -> IO [Branch]
