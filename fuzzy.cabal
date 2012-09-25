@@ -6,6 +6,6 @@ Author:              Wilfred Hughes
 Maintainer:          me@wilfred.me.uk
 Build-Type:          Simple
 Cabal-Version:       >=1.2
-Executable fuzzybranch
+Executable git-fuzzy
   Main-is:           FuzzyBranch.hs
   Build-Depends:     base, MissingH, split, directory, filepath, process
