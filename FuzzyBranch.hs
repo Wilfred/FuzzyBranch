@@ -45,6 +45,9 @@ checkoutBranch :: Branch -> IO ()
 checkoutBranch (LocalBranch name) = do
   output <- readProcess "git" ["checkout", name] []
   putStrLn output
+checkoutBranch (RemoteBranch name) = do
+  output <- readProcess "git" ["checkout", name] []
+  putStrLn output
   
 
 getAllBranches :: FilePath -> IO [Branch]
