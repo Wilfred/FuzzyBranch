@@ -23,7 +23,7 @@ main = do
           putStrLn "No git repo here or in any parent directory."
           exitFailure
         Just path -> do
-          allBranches <- getAllBranches $ path ++ "/.git/info/refs"
+          allBranches <- getAllBranches
           let branches = trackingBranches allBranches
           let userBranchString = args !! 0
           
@@ -51,13 +51,15 @@ checkoutBranch (RemoteBranch name) = do
   putStrLn output
   
 
-getAllBranches :: FilePath -> IO [Branch]
-getAllBranches filePath = do
-  fileContents <- readFile filePath
-  let fileLines = endBy "\n" fileContents
-  let branchNames = map (dropWhile (/= '\t')) fileLines
-  let branches = mapMaybe parseBranchName branchNames
-  return branches
+getAllBranches :: IO [Branch]
+getAllBranches = do
+  localBranchListing <- readProcess "git" ["branch", "--no-color"] []
+  let localBranchNames = [drop 2 name | name <- splitOn "\n" localBranchListing, name /= ""]
+      localBranches = [LocalBranch name | name <- localBranchNames]
+  remoteBranchListing <- readProcess "git" ["branch", "--no-color"] []
+  let remoteBranchNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
+      remoteBranches = [RemoteBranch name | name <- remoteBranchNames]
+  return $ concat [localBranches, remoteBranches]
   
 -- FIXME: assumes / is never a git repo
 gitDirectory :: FilePath -> IO (Maybe FilePath)
@@ -96,18 +98,3 @@ matchBranches needle ((RemoteBranch name):branches) =
     (RemoteBranch name) : matchBranches needle branches
   else
     matchBranches needle branches
-  
-getWebBranches = do
-  allBranches <- getAllBranches "/home/wilfred/work/web/.git/info/refs"
-  return $ trackingBranches allBranches
-
--- we ignore tags
-parseBranchName :: String -> Maybe Branch
-parseBranchName branchName = 
-  if branchLocation == "heads" then 
-    Just $ LocalBranch $ join "/" $ drop 2 branchParts
-  else if branchLocation == "remotes" then
-         Just $ RemoteBranch $ join "/" $ drop 3 branchParts
-       else Nothing
-  where branchParts = (splitOn "/") branchName
-        branchLocation = branchParts !! 1
