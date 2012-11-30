@@ -25,7 +25,6 @@ main = do
         Just path -> do
           allBranches <- getAllBranches
           let branches = trackingBranches allBranches
-          let userBranchString = args !! 0
           
           case matchBranches branchNameSubstring branches of
             [] -> do
