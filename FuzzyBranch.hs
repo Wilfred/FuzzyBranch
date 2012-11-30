@@ -39,7 +39,7 @@ main = do
               exitFailure
               
     otherwise -> do
-      putStrLn "Usage: fuzzy <substring of branch name>"
+      putStrLn "Usage: git-fuzzy <substring of branch name>"
       exitFailure
       
 checkoutBranch :: Branch -> IO ()
