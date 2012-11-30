@@ -3,4 +3,4 @@ using fuzzy string matching.
 
 ## Installation
 
-    $ cabal install --prefix=`pwd` --user
+    $ cabal install --user
