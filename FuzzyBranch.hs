@@ -85,6 +85,7 @@ trackingBranches branches =
    mappend localNames remoteOnlyNames
    
 -- filter branches to only those whose name contains a string
+-- TODO: an exact match is better than substring match
 matchBranches :: String -> [Branch] -> [Branch]
 matchBranches needle [] = []
 matchBranches needle ((LocalBranch name):branches) = 
