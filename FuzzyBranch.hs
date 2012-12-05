@@ -55,7 +55,7 @@ getAllBranches = do
   localBranchListing <- readProcess "git" ["branch", "--no-color"] []
   let localBranchNames = [drop 2 name | name <- splitOn "\n" localBranchListing, name /= ""]
       localBranches = [LocalBranch name | name <- localBranchNames]
-  remoteBranchListing <- readProcess "git" ["branch", "--no-color"] []
+  remoteBranchListing <- readProcess "git" ["branch", "-r", "--no-color"] []
   let remoteBranchNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
       remoteBranches = [RemoteBranch name | name <- remoteBranchNames]
   return $ concat [localBranches, remoteBranches]
