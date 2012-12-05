@@ -53,11 +53,11 @@ checkoutBranch (RemoteBranch name) = do
 getAllBranches :: IO [Branch]
 getAllBranches = do
   localBranchListing <- readProcess "git" ["branch", "--no-color"] []
-  let localBranchNames = [drop 2 name | name <- splitOn "\n" localBranchListing, name /= ""]
-      localBranches = [LocalBranch name | name <- localBranchNames]
+  let localNames = [drop 2 name | name <- splitOn "\n" localBranchListing, name /= ""]
+      localBranches = [LocalBranch name | name <- localNames]
   remoteBranchListing <- readProcess "git" ["branch", "-r", "--no-color"] []
-  let remoteBranchNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
-      remoteBranches = [RemoteBranch name | name <- remoteBranchNames]
+  let remoteNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
+      remoteBranches = [RemoteBranch name | name <- remoteNames]
   return $ concat [localBranches, remoteBranches]
   
 -- FIXME: assumes / is never a git repo
