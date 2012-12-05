@@ -4,7 +4,7 @@ import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import System.Process(readProcess)
 import Control.Monad(liftM)
-import Data.List(isInfixOf)
+import Data.List(isInfixOf, isPrefixOf)
 import Data.List.Split(splitOn,endBy) -- from split
 import Data.String.Utils(join) -- from MissingH
 import Data.Maybe(mapMaybe)
@@ -50,6 +50,17 @@ checkoutBranch (RemoteBranch name) = do
   putStr output
   
 
+-- equivalent to splitOn, but only split once, on the first split point
+splitFirst :: Eq a => [a] -> [a] -> ([a], [a])
+splitFirst element list =
+  let
+    splitElements = splitOn element list
+    beforeSplit = splitElements !! 0
+    afterSplit = join element $ drop 1 splitElements
+  in
+   (beforeSplit, afterSplit)
+
+
 getAllBranches :: IO [Branch]
 getAllBranches = do
   localBranchListing <- readProcess "git" ["branch", "--no-color"] []
@@ -57,7 +68,13 @@ getAllBranches = do
       localBranches = [LocalBranch name | name <- localNames]
   remoteBranchListing <- readProcess "git" ["branch", "-r", "--no-color"] []
   let remoteNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
-      remoteBranches = [RemoteBranch name | name <- remoteNames]
+      -- discard origin/HEAD
+      remoteNames' = [name | name <- remoteNames, not $ "origin/HEAD" `isPrefixOf` name]
+      
+      -- TODO: save the remote name instead of just discarding it
+      remoteNames'' = [snd $ splitFirst "/" name | name <- remoteNames']
+      
+      remoteBranches = [RemoteBranch name | name <- remoteNames'']
   return $ concat [localBranches, remoteBranches]
   
 -- FIXME: assumes / is never a git repo
