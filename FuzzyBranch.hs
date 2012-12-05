@@ -44,10 +44,10 @@ main = do
 checkoutBranch :: Branch -> IO ()
 checkoutBranch (LocalBranch name) = do
   output <- readProcess "git" ["checkout", name] []
-  putStrLn output
+  putStr output
 checkoutBranch (RemoteBranch name) = do
   output <- readProcess "git" ["checkout", name] []
-  putStrLn output
+  putStr output
   
 
 getAllBranches :: IO [Branch]
