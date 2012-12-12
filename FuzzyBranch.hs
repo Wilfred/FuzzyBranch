@@ -40,7 +40,7 @@ main = do
                 putStrLn $ join ", " $ map show (b:bs)
                 exitFailure
               
-    otherwise -> do
+    _ -> do
       putStrLn "Usage: git-fuzzy <substring of branch name>"
       exitFailure
       
