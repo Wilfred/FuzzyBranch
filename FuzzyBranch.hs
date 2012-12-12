@@ -26,10 +26,10 @@ main = do
           allBranches <- getAllBranches
           let branches = trackingBranches allBranches
               
-          case matchBranchExactly branchName branches of
+          case matchBranchExactly branches branchName of
             Just branch -> checkoutBranch branch
             
-            _ -> case matchBranchSubstring branchName branches of
+            _ -> case matchBranchSubstring branches branchName of
               [] -> do
                 putStrLn $ "Couldn't find any branches that match '" ++ branchName ++ "'"
                 exitFailure
@@ -105,26 +105,25 @@ trackingBranches branches =
    mappend localNames remoteOnlyNames
    
 -- filter branches to only those whose name contains a string
--- TODO: switch argument order
-matchBranchSubstring :: String -> [Branch] -> [Branch]
-matchBranchSubstring needle [] = []
-matchBranchSubstring needle ((LocalBranch name):branches) = 
+matchBranchSubstring :: [Branch] -> String -> [Branch]
+matchBranchSubstring [] needle = []
+matchBranchSubstring ((LocalBranch name):branches) needle = 
   if isInfixOf needle name then
-    (LocalBranch name) : (matchBranchSubstring needle branches)
+    (LocalBranch name) : (matchBranchSubstring branches needle)
   else
-    matchBranchSubstring needle branches
-matchBranchSubstring needle ((RemoteBranch name):branches) = 
+    matchBranchSubstring branches needle
+matchBranchSubstring ((RemoteBranch name):branches) needle = 
   if isInfixOf needle name then
-    (RemoteBranch name) : matchBranchSubstring needle branches
+    (RemoteBranch name) : matchBranchSubstring branches needle
   else
-    matchBranchSubstring needle branches
+    matchBranchSubstring branches needle
 
 -- return Just Branch if we have a branch with this exact name
-matchBranchExactly :: String -> [Branch] -> Maybe Branch
-matchBranchExactly needle [] = Nothing
-matchBranchExactly needle ((LocalBranch name):branches)
+matchBranchExactly :: [Branch] -> String -> Maybe Branch
+matchBranchExactly [] needle = Nothing
+matchBranchExactly ((LocalBranch name):branches) needle
   | needle == name = Just $ LocalBranch name
-  | otherwise = matchBranchExactly needle branches
-matchBranchExactly needle ((RemoteBranch name):branches)
+  | otherwise = matchBranchExactly branches needle
+matchBranchExactly ((RemoteBranch name):branches) needle
   | needle == name = Just $ RemoteBranch name
-  | otherwise = matchBranchExactly needle branches
+  | otherwise = matchBranchExactly branches needle
