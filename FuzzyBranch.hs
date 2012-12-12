@@ -25,17 +25,21 @@ main = do
         Just path -> do
           allBranches <- getAllBranches
           let branches = trackingBranches allBranches
-          
-          case matchBranches branchNameSubstring branches of
-            [] -> do
-              putStrLn $ "Couldn't find any branches that match '" ++ branchNameSubstring ++ "'"
-              exitFailure
-            [branch] ->
-              checkoutBranch branch
-            (b:bs) -> do
-              putStrLn $ "Found multiple branches that match '" ++ branchNameSubstring ++ "'"
-              putStrLn $ join ", " $ map show (b:bs)
-              exitFailure
+              
+          -- todo: rename, this isn't necessarily a substring
+          case matchBranchExactly branchNameSubstring branches of
+            Just branch -> checkoutBranch branch
+            
+            _ -> case matchBranchSubstring branchNameSubstring branches of
+              [] -> do
+                putStrLn $ "Couldn't find any branches that match '" ++ branchNameSubstring ++ "'"
+                exitFailure
+              [branch] ->
+                checkoutBranch branch
+              (b:bs) -> do
+                putStrLn $ "Found multiple branches that match '" ++ branchNameSubstring ++ "'"
+                putStrLn $ join ", " $ map show (b:bs)
+                exitFailure
               
     otherwise -> do
       putStrLn "Usage: git-fuzzy <substring of branch name>"
@@ -102,16 +106,26 @@ trackingBranches branches =
    mappend localNames remoteOnlyNames
    
 -- filter branches to only those whose name contains a string
--- TODO: an exact match is better than substring match
-matchBranches :: String -> [Branch] -> [Branch]
-matchBranches needle [] = []
-matchBranches needle ((LocalBranch name):branches) = 
+-- TODO: switch argument order
+matchBranchSubstring :: String -> [Branch] -> [Branch]
+matchBranchSubstring needle [] = []
+matchBranchSubstring needle ((LocalBranch name):branches) = 
   if isInfixOf needle name then
-    (LocalBranch name) : (matchBranches needle branches)
+    (LocalBranch name) : (matchBranchSubstring needle branches)
   else
-    matchBranches needle branches
-matchBranches needle ((RemoteBranch name):branches) = 
+    matchBranchSubstring needle branches
+matchBranchSubstring needle ((RemoteBranch name):branches) = 
   if isInfixOf needle name then
-    (RemoteBranch name) : matchBranches needle branches
+    (RemoteBranch name) : matchBranchSubstring needle branches
   else
-    matchBranches needle branches
+    matchBranchSubstring needle branches
+
+-- return Just Branch if we have a branch with this exact name
+matchBranchExactly :: String -> [Branch] -> Maybe Branch
+matchBranchExactly needle [] = Nothing
+matchBranchExactly needle ((LocalBranch name):branches)
+  | needle == name = Just $ LocalBranch name
+  | otherwise = matchBranchExactly needle branches
+matchBranchExactly needle ((RemoteBranch name):branches)
+  | needle == name = Just $ RemoteBranch name
+  | otherwise = matchBranchExactly needle branches
