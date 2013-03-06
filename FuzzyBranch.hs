@@ -12,6 +12,7 @@ import Data.Monoid(mappend)
 
 
 type BranchName = String
+type CommitHash = String
 data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 
 main = do
@@ -32,8 +33,8 @@ main = do
             
             _ -> case matchBranchSubstring branches branchName of
               [] -> do
-                putStrLn $ "Couldn't find any branches that match '" ++ branchName ++ "'"
-                exitFailure
+                putStrLn $ "Couldn't find any branches that match '" ++ branchName ++ "', trying commit hash."
+                checkoutCommit branchName
               [branch] ->
                 checkoutBranch branch
               (b:bs) -> do
@@ -52,7 +53,11 @@ checkoutBranch (LocalBranch name) = do
 checkoutBranch (RemoteBranch name) = do
   output <- readProcess "git" ["checkout", name] []
   putStr output
-  
+
+checkoutCommit :: CommitHash -> IO ()
+checkoutCommit name = do
+  output <- readProcess "git" ["checkout", name] []
+  putStr output
 
 -- equivalent to splitOn, but only split once, on the first split point
 splitFirst :: Eq a => [a] -> [a] -> ([a], [a])
