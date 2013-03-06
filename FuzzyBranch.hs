@@ -3,11 +3,9 @@ import System.Environment(getArgs)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import System.Process(readProcess)
-import Control.Monad(liftM)
 import Data.List(isInfixOf, isPrefixOf)
-import Data.List.Split(splitOn,endBy) -- from split
+import Data.List.Split(splitOn) -- from split
 import Data.String.Utils(join) -- from MissingH
-import Data.Maybe(mapMaybe)
 import Data.Monoid(mappend)
 
 
