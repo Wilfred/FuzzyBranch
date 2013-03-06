@@ -11,6 +11,7 @@ import Data.Maybe(mapMaybe)
 import Data.Monoid(mappend)
 
 
+type BranchName = String
 data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 
 main = do
@@ -105,7 +106,7 @@ trackingBranches branches =
    mappend localNames remoteOnlyNames
    
 -- filter branches to only those whose name contains a string
-matchBranchSubstring :: [Branch] -> String -> [Branch]
+matchBranchSubstring :: [Branch] -> BranchName -> [Branch]
 matchBranchSubstring [] needle = []
 matchBranchSubstring ((LocalBranch name):branches) needle = 
   if isInfixOf needle name then
@@ -119,7 +120,7 @@ matchBranchSubstring ((RemoteBranch name):branches) needle =
     matchBranchSubstring branches needle
 
 -- return Just Branch if we have a branch with this exact name
-matchBranchExactly :: [Branch] -> String -> Maybe Branch
+matchBranchExactly :: [Branch] -> BranchName -> Maybe Branch
 matchBranchExactly [] needle = Nothing
 matchBranchExactly ((LocalBranch name):branches) needle
   | needle == name = Just $ LocalBranch name
