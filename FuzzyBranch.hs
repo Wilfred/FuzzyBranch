@@ -18,7 +18,7 @@ data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
 main = do
   args <- getArgs
   case args of
-    [branchName] -> do
+    [searchString] -> do
       repoPath <- getCurrentDirectory >>= gitDirectory
       case repoPath of
         Nothing -> do
@@ -28,17 +28,17 @@ main = do
           allBranches <- getAllBranches
           let branches = trackingBranches allBranches
               
-          case matchBranchExactly branches branchName of
+          case matchBranchExactly branches searchString of
             Just branch -> checkoutBranch branch
             
-            _ -> case matchBranchSubstring branches branchName of
+            _ -> case matchBranchSubstring branches searchString of
               [] -> do
-                putStrLn $ "Couldn't find any branches that match '" ++ branchName ++ "', trying commit hash."
-                checkoutCommit branchName
+                putStrLn $ "Couldn't find any branches that match '" ++ searchString ++ "', trying commit hash."
+                checkoutCommit searchString
               [branch] ->
                 checkoutBranch branch
               (b:bs) -> do
-                putStrLn $ "Found multiple branches that match '" ++ branchName ++ "'"
+                putStrLn $ "Found multiple branches that match '" ++ searchString ++ "'"
                 putStrLn $ join ", " $ map show (b:bs)
                 exitFailure
               
