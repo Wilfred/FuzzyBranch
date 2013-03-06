@@ -13,7 +13,7 @@ import Data.Monoid(mappend)
 
 type BranchName = String
 type CommitHash = String
-data Branch = LocalBranch String | RemoteBranch String deriving (Show, Eq)
+data Branch = LocalBranch BranchName | RemoteBranch BranchName deriving (Show, Eq)
 
 main = do
   args <- getArgs
