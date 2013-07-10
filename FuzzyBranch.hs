@@ -3,7 +3,7 @@ import System.Environment(getArgs)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import System.Process(readProcess)
-import Data.List(isInfixOf, isPrefixOf)
+import Data.List(isInfixOf, isPrefixOf, find)
 import Data.List.Split(splitOn) -- from split
 import Data.String.Utils(join) -- from MissingH
 import Data.Monoid(mappend)
@@ -107,27 +107,19 @@ trackingBranches branches =
       remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, not $ (LocalBranch n) `elem` localNames]
   in
    mappend localNames remoteOnlyNames
-   
+
+branchName :: Branch -> String
+branchName (LocalBranch name) = name
+branchName (RemoteBranch name) = name
+
 -- filter branches to only those whose name contains a string
 matchBranchSubstring :: [Branch] -> BranchName -> [Branch]
-matchBranchSubstring [] needle = []
-matchBranchSubstring ((LocalBranch name):branches) needle = 
-  if isInfixOf needle name then
-    (LocalBranch name) : (matchBranchSubstring branches needle)
-  else
-    matchBranchSubstring branches needle
-matchBranchSubstring ((RemoteBranch name):branches) needle = 
-  if isInfixOf needle name then
-    (RemoteBranch name) : matchBranchSubstring branches needle
-  else
-    matchBranchSubstring branches needle
+matchBranchSubstring branches needle = filter substringMatches branches
+  where
+    substringMatches b = isInfixOf needle (branchName b)
 
 -- return Just Branch if we have a branch with this exact name
 matchBranchExactly :: [Branch] -> BranchName -> Maybe Branch
-matchBranchExactly [] needle = Nothing
-matchBranchExactly ((LocalBranch name):branches) needle
-  | needle == name = Just $ LocalBranch name
-  | otherwise = matchBranchExactly branches needle
-matchBranchExactly ((RemoteBranch name):branches) needle
-  | needle == name = Just $ RemoteBranch name
-  | otherwise = matchBranchExactly branches needle
+matchBranchExactly branches needle = find nameMatches branches
+  where
+    nameMatches b = needle == branchName b
