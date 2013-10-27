@@ -13,6 +13,7 @@ type BranchName = String
 type CommitHash = String
 data Branch = LocalBranch BranchName | RemoteBranch BranchName deriving (Show, Eq)
 
+main :: IO ()
 main = do
   args <- getArgs
   case args of
@@ -22,7 +23,7 @@ main = do
         Nothing -> do
           putStrLn "No git repo here or in any parent directory."
           exitFailure
-        Just path -> do
+        Just _ -> do
           allBranches <- getAllBranches
           let branches = trackingBranches allBranches
               
