@@ -63,7 +63,7 @@ splitFirst :: Eq a => [a] -> [a] -> ([a], [a])
 splitFirst element list =
   let
     splitElements = splitOn element list
-    beforeSplit = splitElements !! 0
+    beforeSplit = head splitElements
     afterSplit = join element $ drop 1 splitElements
   in
    (beforeSplit, afterSplit)
@@ -83,7 +83,7 @@ getAllBranches = do
       remoteNames'' = [snd $ splitFirst "/" name | name <- remoteNames']
       
       remoteBranches = [RemoteBranch name | name <- remoteNames'']
-  return $ concat [localBranches, remoteBranches]
+  return $ localBranches ++ remoteBranches
   
 -- FIXME: assumes / is never a git repo
 gitDirectory :: FilePath -> IO (Maybe FilePath)
@@ -105,7 +105,7 @@ trackingBranches :: [Branch] -> [Branch]
 trackingBranches [] = []
 trackingBranches branches = 
   let localNames = [LocalBranch n | LocalBranch n <- branches]
-      remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, not $ (LocalBranch n) `elem` localNames]
+      remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, LocalBranch n `notElem` localNames]
   in
    mappend localNames remoteOnlyNames
 
@@ -117,7 +117,7 @@ branchName (RemoteBranch name) = name
 matchBranchSubstring :: [Branch] -> BranchName -> [Branch]
 matchBranchSubstring branches needle = filter substringMatches branches
   where
-    substringMatches b = isInfixOf needle (branchName b)
+    substringMatches b = needle `isInfixOf` branchName b
 
 -- return Just Branch if we have a branch with this exact name
 matchBranchExactly :: [Branch] -> BranchName -> Maybe Branch
