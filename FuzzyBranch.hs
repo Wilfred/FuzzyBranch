@@ -3,7 +3,7 @@ import System.Environment(getArgs)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import System.Process(readProcess)
-import Data.List(isInfixOf, isPrefixOf, find)
+import Data.List(isInfixOf, find, delete, lines)
 import Data.List.Split(splitOn) -- from split
 import Data.String.Utils(join) -- from MissingH
 import Data.Monoid(mappend)
@@ -69,20 +69,23 @@ splitFirst element list =
    (beforeSplit, afterSplit)
 
 
+type RefsPath = String
+
+-- Call git for-each-ref and return the lines written to stdout.
+-- http://stackoverflow.com/a/40122019/509706
+gitRefs :: RefsPath -> IO [String]
+gitRefs path = do
+  stdout <- readProcess "git" ["for-each-ref", "--format=%(refname:short)", path] []
+  return $ delete "" $ lines stdout
+
 getAllBranches :: IO [Branch]
 getAllBranches = do
-  localBranchListing <- readProcess "git" ["branch", "--no-color"] []
-  let localNames = [drop 2 name | name <- splitOn "\n" localBranchListing, name /= ""]
-      localBranches = [LocalBranch name | name <- localNames]
-  remoteBranchListing <- readProcess "git" ["branch", "-r", "--no-color"] []
-  let remoteNames = [drop 2 name | name <- splitOn "\n" remoteBranchListing, name /= ""]
-      -- discard origin/HEAD
-      remoteNames' = [name | name <- remoteNames, not $ "origin/HEAD" `isPrefixOf` name]
-      
-      -- TODO: save the remote name instead of just discarding it
-      remoteNames'' = [snd $ splitFirst "/" name | name <- remoteNames']
-      
-      remoteBranches = [RemoteBranch name | name <- remoteNames'']
+  localBranchNames <- gitRefs "refs/heads/"
+  let localBranches = map LocalBranch localBranchNames
+  remoteBranchNames <- gitRefs "refs/remotes/origin/"
+  -- TODO: save the remote name instead of just discarding it
+  let remoteBranchNames' = [snd $ splitFirst "/" name | name <- remoteBranchNames, name /= "origin/hEAD"]
+  let remoteBranches = map RemoteBranch remoteBranchNames'
   return $ localBranches ++ remoteBranches
   
 -- FIXME: assumes / is never a git repo
@@ -104,10 +107,10 @@ isGitDirectory path = doesDirectoryExist $ path ++ "/.git"
 trackingBranches :: [Branch] -> [Branch]
 trackingBranches [] = []
 trackingBranches branches = 
-  let localNames = [LocalBranch n | LocalBranch n <- branches]
-      remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, LocalBranch n `notElem` localNames]
+  let localBranchNames = [LocalBranch n | LocalBranch n <- branches]
+      remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, LocalBranch n `notElem` localBranchNames]
   in
-   mappend localNames remoteOnlyNames
+   mappend localBranchNames remoteOnlyNames
 
 branchName :: Branch -> String
 branchName (LocalBranch name) = name
