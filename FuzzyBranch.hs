@@ -36,14 +36,18 @@ main = do
                 checkoutCommit searchString
               [branch] ->
                 checkoutBranch branch
-              (b:bs) -> do
-                putStrLn $ "Found multiple branches that match '" ++ searchString ++ "'"
-                putStrLn $ join ", " $ map show (b:bs)
+              branches -> do
+                putStrLn $ "Found multiple branches that match '" ++ searchString ++ "':"
+                putStr $ unlines $ map formatBranch branches
                 exitFailure
               
     _ -> do
       putStrLn "Usage: git-fuzzy <substring of branch name>"
       exitFailure
+
+formatBranch :: Branch -> String
+formatBranch (LocalBranch name) = "* " ++ name ++ " (local)"
+formatBranch (RemoteBranch name) = "* " ++ name ++ " (remote)"
       
 checkoutBranch :: Branch -> IO ()
 checkoutBranch (LocalBranch name) = do
