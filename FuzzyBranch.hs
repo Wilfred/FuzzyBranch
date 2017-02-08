@@ -7,11 +7,12 @@ import Data.List(isInfixOf, find, delete, lines)
 import Data.List.Split(splitOn) -- from split
 import Data.String.Utils(join) -- from MissingH
 import Data.Monoid(mappend)
+import Control.Monad(forM)
 
-
+type RemoteName = String
 type BranchName = String
 type CommitHash = String
-data Branch = LocalBranch BranchName | RemoteBranch BranchName deriving (Show, Eq)
+data Branch = LocalBranch BranchName | RemoteBranch RemoteName BranchName deriving (Show, Eq)
 
 main :: IO ()
 main = do
@@ -46,14 +47,14 @@ main = do
       exitFailure
 
 formatBranch :: Branch -> String
-formatBranch (LocalBranch name) = "* " ++ name ++ " (local)"
-formatBranch (RemoteBranch name) = "* " ++ name ++ " (remote)"
+formatBranch (LocalBranch name) = "* " ++ name
+formatBranch (RemoteBranch remoteName name) = "* " ++ remoteName ++ "/" ++ name
       
 checkoutBranch :: Branch -> IO ()
 checkoutBranch (LocalBranch name) = do
   output <- readProcess "git" ["checkout", name] []
   putStr output
-checkoutBranch (RemoteBranch name) = do
+checkoutBranch (RemoteBranch _ name) = do
   output <- readProcess "git" ["checkout", name] []
   putStr output
 
@@ -72,6 +73,11 @@ splitFirst element list =
   in
    (beforeSplit, afterSplit)
 
+gitRemotes :: IO [String]
+gitRemotes = do
+  stdout <- readProcess "git" ["remote"] []
+  return $ delete "" $ lines stdout
+
 
 type RefsPath = String
 
@@ -82,15 +88,20 @@ gitRefs path = do
   stdout <- readProcess "git" ["for-each-ref", "--format=%(refname:short)", path] []
   return $ delete "" $ lines stdout
 
+
+getBranches :: RemoteName -> IO [Branch]
+getBranches remoteName = do
+  remoteBranchNames <- gitRefs ("refs/remotes/" ++ remoteName ++ "/")
+  let remoteBranchNames' = [snd $ splitFirst "/" name | name <- remoteBranchNames, name /= (remoteName ++ "/HEAD")]
+  return $ map (RemoteBranch remoteName) remoteBranchNames'
+
 getAllBranches :: IO [Branch]
 getAllBranches = do
   localBranchNames <- gitRefs "refs/heads/"
   let localBranches = map LocalBranch localBranchNames
-  remoteBranchNames <- gitRefs "refs/remotes/origin/"
-  -- TODO: save the remote name instead of just discarding it
-  let remoteBranchNames' = [snd $ splitFirst "/" name | name <- remoteBranchNames, name /= "origin/hEAD"]
-  let remoteBranches = map RemoteBranch remoteBranchNames'
-  return $ localBranches ++ remoteBranches
+  remoteNames <- gitRemotes
+  remoteBranches <- forM remoteNames getBranches
+  return $ localBranches ++ concat remoteBranches
   
 -- FIXME: assumes / is never a git repo
 gitDirectory :: FilePath -> IO (Maybe FilePath)
@@ -112,13 +123,13 @@ trackingBranches :: [Branch] -> [Branch]
 trackingBranches [] = []
 trackingBranches branches = 
   let localBranchNames = [LocalBranch n | LocalBranch n <- branches]
-      remoteOnlyNames = [RemoteBranch n | RemoteBranch n <- branches, LocalBranch n `notElem` localBranchNames]
+      remoteOnlyNames = [RemoteBranch r n | (RemoteBranch r n) <- branches, LocalBranch n `notElem` localBranchNames]
   in
    mappend localBranchNames remoteOnlyNames
 
 branchName :: Branch -> String
 branchName (LocalBranch name) = name
-branchName (RemoteBranch name) = name
+branchName (RemoteBranch _ name) = name
 
 -- filter branches to only those whose name contains a string
 matchBranchSubstring :: [Branch] -> BranchName -> [Branch]
