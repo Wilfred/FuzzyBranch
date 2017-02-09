@@ -1,5 +1,5 @@
 import System.Directory(getCurrentDirectory, doesDirectoryExist) -- from directory
-import System.Environment(getArgs)
+import System.Environment(getArgs, getProgName)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
 import System.Process(readProcess)
@@ -18,6 +18,7 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
+    ["--help"] -> printUsage
     [searchString] -> do
       repoPath <- getCurrentDirectory >>= gitDirectory
       case repoPath of
@@ -42,9 +43,14 @@ main = do
                 putStr $ unlines $ map formatBranch branches
                 exitFailure
               
-    _ -> do
-      putStrLn "Usage: git-fuzzy <substring of branch name>"
-      exitFailure
+    _ -> printUsage >> exitFailure
+
+printUsage :: IO ()
+printUsage = do
+  progName <- getProgName
+  putStrLn $ "Usage: "
+  putStrLn $ progName ++ " <substring of branch name>"
+  putStrLn $ progName ++ " <commit hash>"
 
 formatBranch :: Branch -> String
 formatBranch (LocalBranch name) = "* " ++ name
