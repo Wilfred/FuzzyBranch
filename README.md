@@ -1,7 +1,17 @@
-fuzzy branch is a tool for checking out a copy of a branch, using
-fuzzy string matching. 
+[![Build Status](https://travis-ci.org/Wilfred/FuzzyBranch.svg?branch=master)](https://travis-ci.org/Wilfred/FuzzyBranch)
 
-Inspired by Emacs' ido-mode, but written in Haskell.
+Bored of writing
+
+```
+$ git checkout feature/really-long-branch-name
+```
+
+? git-fuzzy saves precious keystrokes. Just type enough of the branch
+name to uniquely identify it:
+
+```
+$ git co real
+```
 
 ## Installation
 
