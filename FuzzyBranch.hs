@@ -1,4 +1,4 @@
-import System.Directory(getCurrentDirectory, doesDirectoryExist) -- from directory
+import System.Directory(getCurrentDirectory, doesPathExist) -- from directory
 import System.Environment(getArgs, getProgName)
 import System.Exit(exitFailure)
 import System.FilePath(takeDirectory)
@@ -121,7 +121,7 @@ gitDirectory path = do
     gitDirectory $ takeDirectory path
 
 isGitDirectory :: FilePath -> IO Bool
-isGitDirectory path = doesDirectoryExist $ path ++ "/.git"
+isGitDirectory path = doesPathExist $ path ++ "/.git"
 
 -- a list of local branches and only the remote branches that don't
 -- have corresponding local branches
