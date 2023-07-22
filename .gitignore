@@ -3,3 +3,4 @@
 FuzzyBranch
 dist/
 bin/
+.cabal-sandbox
